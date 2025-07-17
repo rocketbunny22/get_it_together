@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Inventory</title>
+    <link rel="stylesheet" href="/static/main/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Enter your items here!</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <ul id="name-dropdown" class="name-suggestions" style="display: none;"></ul>
+            <button type="submit">Add Food Item</button>
+            <a href="/main">Back To Inventory</a>
+        </form>
+    </div>
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const nameInput = document.getElementById('id_name');
+        const dropdown = document.getElementById('name-dropdown');
+    
+        let debounceTimer = null;
+    
+        nameInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const query = nameInput.value.trim();
+                if (query.length === 0) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+    
+                fetch(`/ajax/food-suggestions/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        dropdown.innerHTML = '';
+                        data.suggestions.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = item;
+                            li.style.cursor = 'pointer';
+                            li.addEventListener('click', () => {
+                                nameInput.value = item;
+                                dropdown.style.display = 'none';
+                            });
+                            dropdown.appendChild(li);
+                        });
+    
+                        dropdown.style.display = data.suggestions.length ? 'block' : 'none';
+                    });
+            }, 300); // debounce delay
+        });
+    
+        nameInput.addEventListener('blur', () => {
+            setTimeout(() => dropdown.style.display = 'none', 200);
+        });
+    });
+    </script>
+</html>    

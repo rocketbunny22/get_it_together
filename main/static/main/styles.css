@@ -1,0 +1,98 @@
+html{
+    background-color: #000;
+}
+
+.food-sheet input{
+    width: 80%;
+    border: none;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #000;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 100%;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-delete{
+    color: red;
+}
+
+.food-row{
+    height: 35px;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+.food-unit{
+    border-right: 1px solid;
+    padding: 5px 20px;
+}
+
+.add-item-button{
+    margin-top: 20px;
+}
+
+table.food-sheet{
+    border-collapse: collapse;
+    box-sizing: border-box;
+    text-indent: initial;
+    unicode-bidi: isolate;
+    border-color: #000;
+    margin: 0 auto;
+    table-layout: auto;
+    width: 100%;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.food-search {
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+input[type="text"] {
+    padding: 6px 10px;
+    width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    padding: 6px 12px;
+    margin-left: 5px;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #4cae4c;
+}

@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Inventory</title>
+    <link rel="stylesheet" href="{% static 'main/styles.css' %}">
+    <style>
+        input, select {
+            width: 100%;
+            padding: 4px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Food Inventory</h1>
+        <form class"food-search" method="get" action=".">
+            <input type="text" name="q" placeholder="Search..." value="{{ query }}">
+            <button type="submit">Search</button>
+        </form>
+        
+        <table class="food-sheet">
+            <tr class="header-row">
+                <th>Name</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Storage</th>
+                <th>Expiration</th>
+                <th>Actions</th>
+            </tr>
+            {% for item in items %}
+            <tr class="food-row" data-id="{{ item.id }}">
+                <td><input value="{{ item.name }}" data-field="name"></td>
+                <td>{{ item.category.name }}</td> <!-- read-only for now -->
+                <td><input type="number" step="0.1" value="{{ item.quantity }}" data-field="quantity"></td>
+                <td>
+                    <select data-field="unit">
+                        {% for code, label in unit_choices %}
+                        <option value="{{ code }}" {% if item.unit == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <select data-field="storage_location">
+                        {% for code, label in storage_choices %}
+                        <option value="{{ code }}" {% if item.storage_location == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><input type="date" value="{{ item.expiration_date|date:'Y-m-d' }}" data-field="expiration_date"></td>
+                <td>
+                    <a href="{% url 'delete_food_item' item.id %}" class="btn-delete">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <a class="add-link" href="{% url 'add_food_item' %}">
+            <button class="add-item-button">Add Item</button>
+        </a>
+    </div>
+
+    <script>
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('change', function () {
+            const row = this.closest('tr');
+            const itemId = row.dataset.id;
+            const field = this.dataset.field;
+            const value = this.value;
+
+            fetch(`/update/${itemId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `field=${field}&value=${encodeURIComponent(value)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('⚠️ Failed to update');
+                }
+            })
+            .catch(err => alert('Error updating item'));
+        });
+    });
+    </script>
+</body>
+</html>
