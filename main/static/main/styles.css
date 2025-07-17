@@ -96,3 +96,23 @@ button {
 button:hover {
     background-color: #4cae4c;
 }
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+.column {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.col-1, .col-3 {
+    min-width: 200px;
+}
+
+.col-2 {
+    min-width: 500px;
+}

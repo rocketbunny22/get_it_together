@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from .models import FoodItem, Category
-from .forms import FoodItemForm
+from .models import FoodItem, Category, Todo
+from .forms import FoodItemForm, TodoForm
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 
@@ -74,3 +74,23 @@ def food_name_suggestions(request):
         .distinct()[:10]
     )
     return JsonResponse({'suggestions': suggestions})
+
+def todo_list(request):
+    form = TodoForm()
+    todos = Todo.objects.all().order_by('-created_at')
+    return render(request, 'todo_list.html', {'todos': todos, 'form': form})
+
+def add_todo(request):
+    if request.method == 'POST':
+        form = TodoForm(request.POST)
+        if form.is_valid():
+            form.save()
+    return redirect('todo_list')
+
+def toggle_complete(request, pk):
+    if request.method == 'POST':
+        todo = get_object_or_404(Todo, pk=pk)
+        todo.completed = not todo.completed
+        todo.save()
+        return JsonResponse({'success': True, 'completed': todo.completed})
+    return JsonResponse({'success': False})

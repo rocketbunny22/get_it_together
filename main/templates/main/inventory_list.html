@@ -12,56 +12,101 @@
             padding: 4px;
             font-size: 1em;
         }
+        .completed {
+            text-decoration: line-through;
+            color: gray;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Food Inventory</h1>
-        <form class"food-search" method="get" action=".">
-            <input type="text" name="q" placeholder="Search..." value="{{ query }}">
-            <button type="submit">Search</button>
-        </form>
-        
-        <table class="food-sheet">
-            <tr class="header-row">
-                <th>Name</th>
-                <th>Category</th>
-                <th>Quantity</th>
-                <th>Unit</th>
-                <th>Storage</th>
-                <th>Expiration</th>
-                <th>Actions</th>
-            </tr>
-            {% for item in items %}
-            <tr class="food-row" data-id="{{ item.id }}">
-                <td><input value="{{ item.name }}" data-field="name"></td>
-                <td>{{ item.category.name }}</td> <!-- read-only for now -->
-                <td><input type="number" step="0.1" value="{{ item.quantity }}" data-field="quantity"></td>
-                <td>
-                    <select data-field="unit">
-                        {% for code, label in unit_choices %}
-                        <option value="{{ code }}" {% if item.unit == code %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td>
-                    <select data-field="storage_location">
-                        {% for code, label in storage_choices %}
-                        <option value="{{ code }}" {% if item.storage_location == code %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td><input type="date" value="{{ item.expiration_date|date:'Y-m-d' }}" data-field="expiration_date"></td>
-                <td>
-                    <a href="{% url 'delete_food_item' item.id %}" class="btn-delete">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-        <a class="add-link" href="{% url 'add_food_item' %}">
-            <button class="add-item-button">Add Item</button>
-        </a>
+    <div class="grid-container">
+        <!-- Column 1: Lori's List -->
+        <div class="column col-1">
+            <!-- Optional: categories, filters, etc. -->
+            <h1>Lori's List</h1>
+
+            <form class="lori-todo" method="post" action="{% url 'add_todo' %}">
+                {% csrf_token %}
+                {{ form }}
+                <button type="submit">Search</button>
+            </form>
+
+                <ul>
+                    {% for todo in todos %}
+                    <li>
+                        <input type="checkbox" data-id="{{ todo.id }}" {% if todo.completed %}checked{% endif %}>
+                        <span class="{% if todo.completed %}completed{% endif %}">{{ todo.title }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+     
+        </div>
+
+        <!-- Column 2: Grocery List -->
+        <div class="column col-2">
+            <h1>Grocery List</h1>
+
+            <form class="grocery-list" method="get" action=".">
+                <input type="text" name="q" placeholder="Search..." value="{{ query }}">
+                <button type="submit">Search</button>
+            </form>
+
+            
+        </div>
+
+        <!-- Column 3: Optional sidebar -->
+        <div class="column col-3">
+            <!-- You can add stats, charts, tips, etc. -->
+            <h1>Current Inventory</h1>
+
+            <form class="food-search" method="get" action=".">
+                <input type="text" name="q" placeholder="Search..." value="{{ query }}">
+                <button type="submit">Search</button>
+            </form>
+
+            <table class="food-sheet">
+                <tr class="header-row">
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Unit</th>
+                    <th>Storage</th>
+                    <th>Expiration</th>
+                    <th>Actions</th>
+                </tr>
+                {% for item in items %}
+                <tr class="food-row" data-id="{{ item.id }}">
+                    <td><input value="{{ item.name }}" data-field="name"></td>
+                    <td>{{ item.category.name }}</td>
+                    <td><input type="number" step="0.1" value="{{ item.quantity }}" data-field="quantity"></td>
+                    <td>
+                        <select data-field="unit">
+                            {% for code, label in unit_choices %}
+                            <option value="{{ code }}" {% if item.unit == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select data-field="storage_location">
+                            {% for code, label in storage_choices %}
+                            <option value="{{ code }}" {% if item.storage_location == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="date" value="{{ item.expiration_date|date:'Y-m-d' }}" data-field="expiration_date"></td>
+                    <td><a href="{% url 'delete_food_item' item.id %}" class="btn-delete">Delete</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <a class="add-link" href="{% url 'add_food_item' %}">
+                <button class="add-item-button">Add Item</button>
+            </a>
+        </div>
+        </div>
     </div>
+</body>
+
 
     <script>
     document.querySelectorAll('input, select').forEach(el => {
@@ -88,6 +133,30 @@
             .catch(err => alert('Error updating item'));
         });
     });
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const id = this.dataset.id;
+                fetch(`/toggle/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        const span = this.nextElementSibling;
+                        span.classList.toggle('completed', data.completed);
+                    }
+                });
+            });
+        });
+
+        function getCookie(name) {
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith(name + '='))
+                ?.split('=')[1];
+            return cookieValue ? decodeURIComponent(cookieValue) : null;
+        }
     </script>
 </body>
 </html>
