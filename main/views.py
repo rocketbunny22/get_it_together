@@ -85,7 +85,7 @@ def add_todo(request):
         form = TodoForm(request.POST)
         if form.is_valid():
             form.save()
-    return redirect('todo_list')
+    return redirect('inventory_list')
 
 def toggle_complete(request, pk):
     if request.method == 'POST':

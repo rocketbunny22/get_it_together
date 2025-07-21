@@ -16,6 +16,16 @@
             text-decoration: line-through;
             color: gray;
         }
+        #todo-modal {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        #todo-modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body>
@@ -24,12 +34,19 @@
         <div class="column col-1">
             <!-- Optional: categories, filters, etc. -->
             <h1>Lori's List</h1>
-
-            <form class="lori-todo" method="post" action="{% url 'add_todo' %}">
-                {% csrf_token %}
-                {{ form }}
-                <button type="submit">Search</button>
-            </form>
+            <div id="todo-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
+            <div style="background:#fff; padding:20px; border-radius:10px; width:300px; position:relative;">
+                <button onclick="closeModal()" style="position:absolute; top:5px; right:10px;">&times;</button>
+                <h2>Add Task</h2>
+                <form id="todo-form" method="post" action="{% url 'add_todo' %}">
+                    {% csrf_token %}
+                    {{ form }}
+                    <button type="submit">Add</button>
+                </form>
+            </div>
+        </div>
+        <button onclick="openModal()">+ Add New Task</button>
 
                 <ul>
                     {% for todo in todos %}
@@ -109,7 +126,22 @@
 
 
     <script>
-    document.querySelectorAll('input, select').forEach(el => {
+        function openModal() {
+            document.getElementById('todo-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('todo-modal').classList.remove('show');
+        }
+
+
+    // Optional: Close modal when clicking outside of the form box
+    document.getElementById('todo-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+    document.querySelectorAll('.food-row input, .food-row select').forEach(el => {
         el.addEventListener('change', function () {
             const row = this.closest('tr');
             const itemId = row.dataset.id;
@@ -158,5 +190,4 @@
             return cookieValue ? decodeURIComponent(cookieValue) : null;
         }
     </script>
-</body>
 </html>
