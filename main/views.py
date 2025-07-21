@@ -24,12 +24,19 @@ def inventory_list(request):
     unit_choices = FoodItem._meta.get_field('unit').choices
     storage_choices = FoodItem._meta.get_field('storage_location').choices
 
+    # ✅ Add these two lines:
+    form = TodoForm()
+    todos = Todo.objects.all().order_by('-created_at')
+
     return render(request, 'main/inventory_list.html', {
         'items': items,
         'unit_choices': unit_choices,
         'storage_choices': storage_choices,
         'query': query,
+        'form': form,          # ✅ Add to context for modal
+        'todos': todos,        # ✅ Add to context for Lori's List
     })
+
 def add_food_item(request):
     if request.method == 'POST':
         form = FoodItemForm(request.POST)
@@ -94,3 +101,22 @@ def toggle_complete(request, pk):
         todo.save()
         return JsonResponse({'success': True, 'completed': todo.completed})
     return JsonResponse({'success': False})
+
+@csrf_exempt
+def delete_todo(request, pk):
+    if request.method == 'POST':
+        todo = get_object_or_404(Todo, pk=pk)
+        todo.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+@csrf_exempt
+def update_todo(request, pk):
+    if request.method == 'POST':
+        todo = get_object_or_404(Todo, pk=pk)
+        title = request.POST.get('title', '').strip()
+        if title:
+            todo.title = title
+            todo.save()
+            return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)

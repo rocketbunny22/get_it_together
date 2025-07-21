@@ -116,3 +116,55 @@ button:hover {
 .col-2 {
     min-width: 500px;
 }
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+    gap: 10px;
+}
+
+.todo-text {
+    flex: 1;
+    font-size: 1em;
+    outline: none;
+    padding: 4px 0;
+    cursor: text;
+}
+
+.todo-text.completed {
+    text-decoration: line-through;
+    color: gray;
+}
+
+.todo-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.todo-delete {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    color: #888;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.todo-delete:hover {
+    color: red;
+}
+
+@media (max-width: 981px) {
+    .grid-container {
+        grid-template-columns: 1fr;
+    }
+
+    .column {
+        width: 100%;
+    }
+}

@@ -47,26 +47,22 @@
             </div>
         </div>
         <button onclick="openModal()">+ Add New Task</button>
-
-                <ul>
-                    {% for todo in todos %}
-                    <li>
-                        <input type="checkbox" data-id="{{ todo.id }}" {% if todo.completed %}checked{% endif %}>
-                        <span class="{% if todo.completed %}completed{% endif %}">{{ todo.title }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-     
+            <ul class="single-list-item loris-list-item">
+                {% for todo in todos %}
+                <li class="todo-item" data-id="{{ todo.id }}">
+                    <span class="todo-text {% if todo.completed %}completed{% endif %}" contenteditable="true">{{ todo.title }}</span>
+                    <input type="checkbox" class="todo-checkbox" data-id="{{ todo.id }}" {% if todo.completed %}checked{% endif %}>
+                    <button class="todo-delete" data-id="{{ todo.id }}">&times;</button>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
 
         <!-- Column 2: Grocery List -->
         <div class="column col-2">
             <h1>Grocery List</h1>
 
-            <form class="grocery-list" method="get" action=".">
-                <input type="text" name="q" placeholder="Search..." value="{{ query }}">
-                <button type="submit">Search</button>
-            </form>
+           
 
             
         </div>
@@ -126,6 +122,66 @@
 
 
     <script>
+        document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function () {
+        const id = this.dataset.id;
+        fetch(`/toggle/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        }).then(res => res.json()).then(data => {
+            if (data.success) {
+                const text = this.closest('.todo-item').querySelector('.todo-text');
+                text.classList.toggle('completed', data.completed);
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.todo-delete').forEach(button => {
+    button.addEventListener('click', function () {
+        const id = this.dataset.id;
+        fetch(`/delete_todo/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        }).then(res => {
+            if (res.ok) {
+                this.closest('.todo-item').remove();
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.todo-text').forEach(span => {
+    span.addEventListener('blur', function () {
+        const id = this.closest('.todo-item').dataset.id;
+        const newText = this.innerText.trim();
+
+        fetch(`/update_todo/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `title=${encodeURIComponent(newText)}`
+        }).then(res => res.json()).then(data => {
+            if (!data.success) {
+                alert('Update failed');
+            }
+        });
+    });
+});
+
+function getCookie(name) {
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith(name + '='))
+        ?.split('=')[1];
+    return cookieValue ? decodeURIComponent(cookieValue) : null;
+}
         function openModal() {
             document.getElementById('todo-modal').classList.add('show');
         }

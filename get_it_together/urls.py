@@ -17,12 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from . import views
-from main.views import update_food_item
+from main.views import update_food_item, delete_todo, update_todo
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("main/", include("main.urls")),
     path("update/<int:item_id>/", update_food_item, name='update_food_item'),
+    path('delete_todo/<int:pk>/', delete_todo, name='delete_todo'),
+    path('update_todo/<int:pk>/', update_todo, name='update_todo'),
     
 ]
