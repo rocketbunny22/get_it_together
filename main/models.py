@@ -26,9 +26,14 @@ class FoodItem(models.Model):
             return self.quantity <= 1       
         
 class Todo(models.Model):
+    LIST_CHOICES = [
+        ('lori', "Lori's List"),
+        ('grocery', 'Grocery List')
+    ]
     title = models.CharField(max_length=200)
     completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    list_type = models.CharField(max_length=10, choices=LIST_CHOICES, default='lori')
 
     def __str__(self):
-        return self.title        
+        return self.title

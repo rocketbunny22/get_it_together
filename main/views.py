@@ -24,18 +24,23 @@ def inventory_list(request):
     unit_choices = FoodItem._meta.get_field('unit').choices
     storage_choices = FoodItem._meta.get_field('storage_location').choices
 
-    # ✅ Add these two lines:
-    form = TodoForm()
-    todos = Todo.objects.all().order_by('-created_at')
+    # ✅ Todo & Grocery List additions
+    todos = Todo.objects.filter(list_type='lori').order_by('-created_at')
+    groceries = Todo.objects.filter(list_type='grocery').order_by('-created_at')
+    form = TodoForm(initial={'list_type': 'lori'})
+    grocery_form = TodoForm(initial={'list_type': 'grocery'})
 
     return render(request, 'main/inventory_list.html', {
         'items': items,
         'unit_choices': unit_choices,
         'storage_choices': storage_choices,
         'query': query,
-        'form': form,          # ✅ Add to context for modal
-        'todos': todos,        # ✅ Add to context for Lori's List
+        'form': form,
+        'grocery_form': grocery_form,
+        'todos': todos,
+        'groceries': groceries,
     })
+
 
 def add_food_item(request):
     if request.method == 'POST':
@@ -94,6 +99,7 @@ def add_todo(request):
             form.save()
     return redirect('inventory_list')
 
+@csrf_exempt
 def toggle_complete(request, pk):
     if request.method == 'POST':
         todo = get_object_or_404(Todo, pk=pk)
@@ -120,3 +126,34 @@ def update_todo(request, pk):
             todo.save()
             return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
+
+def add_grocery(request):
+    if request.method == 'POST':
+        data = request.POST.copy()
+        data['list_type'] = 'grocery'  # Force the type regardless of form input
+        form = TodoForm(data)
+        if form.is_valid():
+            form.save()
+    return redirect('inventory_list')
+
+@csrf_exempt
+def toggle_grocery(request, id):
+    todo = get_object_or_404(Todo, id=id, list_type='grocery')
+    todo.completed = not todo.completed
+    todo.save()
+    return JsonResponse({'success': True, 'completed': todo.completed})
+
+@csrf_exempt
+def update_grocery(request, id):
+    todo = get_object_or_404(Todo, id=id, list_type='grocery')
+    if request.method == 'POST':
+        todo.title = request.POST.get('title', todo.title)
+        todo.save()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False})
+
+@csrf_exempt
+def delete_grocery(request, id):
+    todo = get_object_or_404(Todo, id=id, list_type='grocery')
+    todo.delete()
+    return JsonResponse({'success': True})

@@ -14,6 +14,7 @@ body {
     padding: 20px;
 }
 
+
 .container {
     max-width: 100%;
     margin: auto;
@@ -98,10 +99,27 @@ button:hover {
 }
 .grid-container {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        "col1 col2"
+        "col3 col3";
     gap: 20px;
     padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
+.col-1 {
+    grid-area: col1;
+}
+
+.col-2 {
+    grid-area: col2;
+}
+
+.col-3 {
+    grid-area: col3;
+}
+
 
 .column {
     background: #f9f9f9;
@@ -109,15 +127,11 @@ button:hover {
     border-radius: 8px;
 }
 
-.col-1, .col-3 {
+.col-1, .col-3, .col-2 {
     min-width: 200px;
 }
 
-.col-2 {
-    min-width: 500px;
-}
-
-.todo-item {
+.todo-item, .grocery-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -126,27 +140,27 @@ button:hover {
     gap: 10px;
 }
 
-.todo-text {
+.todo-text, .grocery-text {
     flex: 1;
-    font-size: 1em;
+    font-size: 22px;
     outline: none;
     padding: 4px 0;
     cursor: text;
 }
 
-.todo-text.completed {
+.todo-text.completed, .grocery-text.completed {
     text-decoration: line-through;
     color: gray;
 }
 
-.todo-checkbox {
+.todo-checkbox, .grocery-checkbox {
     width: 20px;
     height: 20px;
     border-radius: 6px;
     cursor: pointer;
 }
 
-.todo-delete {
+.todo-delete, .grocery-delete {
     background: transparent;
     border: none;
     font-size: 18px;
@@ -159,9 +173,18 @@ button:hover {
     color: red;
 }
 
-@media (max-width: 981px) {
+
+
+@media (max-width: 768px) {
+    .todo-text, .grocery-text{
+        font-size: 18px;
+    }
     .grid-container {
         grid-template-columns: 1fr;
+        grid-template-areas:
+            "col1"
+            "col2"
+            "col3";
     }
 
     .column {

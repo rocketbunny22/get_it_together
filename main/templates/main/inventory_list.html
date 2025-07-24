@@ -6,27 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Inventory</title>
     <link rel="stylesheet" href="{% static 'main/styles.css' %}">
-    <style>
-        input, select {
-            width: 100%;
-            padding: 4px;
-            font-size: 1em;
-        }
-        .completed {
-            text-decoration: line-through;
-            color: gray;
-        }
-        #todo-modal {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
+<style>
+    input, select {
+    width: 100%;
+    padding: 4px;
+    font-size: 1em;
+}
+.completed {
+    text-decoration: line-through;
+    color: gray;
+}
+#todo-modal {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
 
-        #todo-modal.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-    </style>
+#todo-modal.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+#grocery-modal {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#grocery-modal.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+</style>
 </head>
 <body>
     <div class="grid-container">
@@ -41,7 +51,8 @@
                 <h2>Add Task</h2>
                 <form id="todo-form" method="post" action="{% url 'add_todo' %}">
                     {% csrf_token %}
-                    {{ form }}
+                    {{ form.title }}
+                    <input type="hidden" name="list_type" value="lori">
                     <button type="submit">Add</button>
                 </form>
             </div>
@@ -61,10 +72,32 @@
         <!-- Column 2: Grocery List -->
         <div class="column col-2">
             <h1>Grocery List</h1>
+            <div id="grocery-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
+                <div style="background:#fff; padding:20px; border-radius:10px; width:300px; position:relative;">
+                    <button onclick="closeGroceryModal()" style="position:absolute; top:5px; right:10px;">&times;</button>
+                    <h2>Add Grocery</h2>
+                    <form id="grocery-form" method="post" action="{% url 'add_grocery' %}">
+                        {% csrf_token %}
+                        {{ grocery_form.title }}
+                        <input type="hidden" name="list_type" value="grocery">
 
-           
+                        <button type="submit">Add</button>
+                    </form>
+                </div>
+            </div>
 
-            
+            <button onclick="openGroceryModal()">+ Add Grocery Item</button>
+
+            <ul class="single-list-item grocery-list-item">
+                {% for grocery in groceries %}
+                <li class="grocery-item" data-id="{{ grocery.id }}">
+                    <span class="grocery-text {% if grocery.completed %}completed{% endif %}" contenteditable="true">{{ grocery.title }}</span>
+                    <input type="checkbox" class="grocery-checkbox" data-id="{{ grocery.id }}" {% if grocery.completed %}checked{% endif %}>
+                    <button class="grocery-delete" data-id="{{ grocery.id }}">&times;</button>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
 
         <!-- Column 3: Optional sidebar -->
@@ -122,10 +155,76 @@
 
 
     <script>
-        document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+        document.querySelectorAll('.grocery-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const id = this.dataset.id;
+            fetch(`/main/toggle/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                }
+            }).then(res => res.json()).then(data => {
+                if (data.success) {
+                    const text = this.closest('.grocery-item').querySelector('.grocery-text');
+                    text.classList.toggle('completed', data.completed);
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('.grocery-delete').forEach(button => {
+        button.addEventListener('click', function () {
+            const id = this.dataset.id;
+            fetch(`/grocery/delete/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                }
+            }).then(res => {
+                if (res.ok) {
+                    this.closest('.grocery-item').remove();
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('.grocery-text').forEach(span => {
+        span.addEventListener('blur', function () {
+            const id = this.closest('.grocery-item').dataset.id;
+            const newText = this.innerText.trim();
+
+            fetch(`/grocery/update/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `title=${encodeURIComponent(newText)}`
+            }).then(res => res.json()).then(data => {
+                if (!data.success) {
+                    alert('Update failed');
+                }
+            });
+        });
+    });
+
+    function openGroceryModal() {
+        document.getElementById('grocery-modal').classList.add('show');
+    }
+
+    function closeGroceryModal() {
+        document.getElementById('grocery-modal').classList.remove('show');
+    }
+
+    document.getElementById('grocery-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeGroceryModal();
+        }
+    });
+    document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
     checkbox.addEventListener('change', function () {
         const id = this.dataset.id;
-        fetch(`/toggle/${id}/`, {
+        fetch(`/main/toggle/${id}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
